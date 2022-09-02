@@ -1,0 +1,183 @@
+
+
+-------------------Question 1----------------------
+
+
+
+UCLASS()
+class AFoo : public AActor
+{
+    UBar *Bar;
+};
+AFoo::BeginPlay()
+{
+    ...
+    Bar = NewObject<UBar>(this, UBar::StaticClass());
+    ...
+}
+AFoo::Tick(float Delta)
+{
+    ...
+    Bar->DoStuff();
+    ...
+}
+
+Qu'es-ce qui peut se passer quand Bar->DoStuff() est appelé ?
+
+Je dirais que Bar peut ne pas avoir été créé, et l'appel à DoStuff() peut produire une exception.
+
+Proposition de correction:
+
+AFoo::PostInitializeComponents()
+{
+    ...
+    Bar = NewObject<UBar>(this, UBar::StaticClass());
+    ...
+}
+
+Aussi possible de vérifier si Bar est un nullptr.
+
+
+
+
+-------------------Question 2-----------------------
+
+
+
+
+
+int32 Foo = 42;
+UBar *bar;
+auto SomeLambda = [=](int Baz)
+{
+    ...
+    Foo = Bar->ComputeStuff(Foo, Baz);
+    ...
+};
+SomeLambda(47);
+
+
+Corriger le code pour que l'appel à someLambda modifie Foo.
+
+
+int32 Foo = 42;
+UBar *bar;
+auto SomeLambda = [bar, &Foo](int Baz)
+{
+    ...
+    Foo = bar->ComputeStuff(Foo, Baz);
+    ...
+};
+SomeLambda(47);
+
+
+
+--------------------Question 3---------------------
+
+
+
+
+
+Le fichier "Truc.hpp" contient:
+template<typename T>
+class Truc
+{
+    ...
+    void SomeFunction(T foo)
+    {
+        ...
+    }
+};
+
+
+Ce template est principalement utilisé avec les types int32, float et double.
+Comment réduire le temps de compilation du programme ?
+
+En faisant de la spécialisation de template :
+
+
+template<>
+class Truc<int32>
+{
+    ...
+    void SomeFunction(int32 foo)
+    {
+        ...
+    }
+};
+
+template<>
+class Truc<float>
+{
+    ...
+    void SomeFunction(float foo)
+    {
+        ...
+    }
+};
+
+template<>
+class Truc<double>
+{
+    ...
+    void SomeFunction(double foo)
+    {
+        ...
+    }
+};
+
+
+--------------------Question 4----------------------
+
+
+
+
+class A
+{
+    public:
+        void PolymorphicMethod();
+};
+
+class B : private A
+{
+    public:
+        void PolymorphicMethod();
+}
+
+void truc(A UnA)
+{
+    A.PolymorphicMethod();
+}
+
+int main(int argc, char **argv)
+{
+    B UnB;
+    truc(UnB);
+}
+
+Corriger toutes les erreurs. Le programme doit appeler B::PolymorphicMethod().
+
+Proposition de correction :
+
+class A
+{
+    public:
+        virtual void PolymorphicMethod();
+};
+
+class B : public A
+{
+    public:
+        void PolymorphicMethod();
+};
+
+void truc(A UnA)
+{
+    UnA.PolymorphicMethod();
+}
+
+int main(int argc, char **argv)
+{
+    B UnB;
+    truc(UnB);
+};
